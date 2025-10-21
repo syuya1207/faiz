@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const CODE_PHAIZ = "555";
+    // 正しい変身コードは '5a5b5c' に変更
+    const CODE_PHAIZ = "5a5b5c"; 
     const statusText = document.getElementById('status-text');
     const codeInput = document.getElementById('code-input');
     const keypad = document.getElementById('keypad');
@@ -8,10 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const driverContainer = document.getElementById('driver-container');
 
     // Audio要素の取得
+    const audio5a = document.getElementById('audio-5a'); // 新規追加
+    const audio5b = document.getElementById('audio-5b'); // 新規追加
+    const audio5c = document.getElementById('audio-5c'); // 新規追加
     const audioStandby = document.getElementById('audio-standby');
+    const audioCharge = document.getElementById('audio-charge'); // 待機音として使用
     const audioComplete = document.getElementById('audio-complete');
     const audioError = document.getElementById('audio-error');
-    const audioCharge = document.getElementById('audio-charge');
     const audioKeyPress = document.getElementById('audio-key-press');
 
     let currentCode = "";
@@ -25,24 +29,23 @@ document.addEventListener('DOMContentLoaded', () => {
         statusText.textContent = "READY";
         codeInput.textContent = "";
         driverContainer.classList.remove('status-standby', 'status-complete');
+        // 待機音(charge)とstandby音を停止
+        stopAudio(audioCharge); 
         stopAudio(audioStandby);
         enterBtn.onmousedown = enterPress; 
         enterBtn.ontouchstart = enterPress;
-        // READYに戻るときは、DeviceOrientation Eventを停止
         window.removeEventListener('deviceorientation', handleOrientation);
     }
 
-    // --- 音声再生ヘルパー関数（省略） ---
-
+    // --- 音声再生ヘルパー関数 ---
     function playAudio(audioElement, loop = false) {
-        if (!loop && audioElement.id === 'audio-key-press') {
+        if (!loop && (audioElement.id === 'audio-key-press' || audioElement.id.startsWith('audio-5'))) {
+             // 5a/5b/5cの個別音とキー音は新しいAudioオブジェクトで再生
             const tempAudio = new Audio(audioElement.src);
             tempAudio.play().catch(e => console.error("Audio playback failed:", e));
             return;
         }
-        if (loop) {
-            stopAudio(audioStandby);
-        }
+
         audioElement.loop = loop;
         audioElement.currentTime = 0;
         audioElement.play().catch(e => console.error("Audio playback failed:", e));
@@ -55,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ギミック処理関数 ---
 
-    // テンキー入力 (変更なし)
+    // テンキー入力 (5a, 5b, 5cに対応)
     keypad.addEventListener('click', (e) => {
         if (currentState !== 'READY') return;
 
@@ -63,41 +66,52 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!key || key.id === 'enter-btn' || key.id === 'clear-btn') return;
 
         const num = key.getAttribute('data-num');
-        if (num !== null && currentCode.length < 4) {
-            playAudio(audioKeyPress, false); 
+        if (num !== null && currentCode.length < 6) { // 5a5b5cは6文字
+            
+            // 5a, 5b, 5cの音源を再生
+            if (num === '5a') {
+                playAudio(audio5a, false);
+            } else if (num === '5b') {
+                playAudio(audio5b, false);
+            } else if (num === '5c') {
+                playAudio(audio5c, false);
+            } else {
+                playAudio(audioKeyPress, false); 
+            }
             
             currentCode += num;
             codeInput.textContent = currentCode;
         }
     });
 
-    // クリアボタン (★ここを変更しました★)
+    // クリアボタン (変更なし)
     clearBtn.addEventListener('click', () => {
-        if (currentState === 'READY') {
-            // READY状態: コードのクリア
-            currentCode = "";
-            codeInput.textContent = "";
-            statusText.textContent = "READY";
-        } else if (currentState === 'STANDBY') {
-            // STANDBY状態: 変身シークエンスのキャンセル（リセット）
+        if (currentState === 'READY' || currentState === 'STANDBY') {
             resetState();
         }
-        // COMPLETE状態では何もしない
     });
 
-    // ENTERキー処理 (変更なし)
+    // ENTERキー処理
     function enterPress() {
         if (currentState === 'READY') {
             if (currentCode === CODE_PHAIZ) {
-                // STANDING BYへ移行
+                // STANDING BYとCHARGEを連続再生
                 statusText.textContent = "STANDING BY";
                 driverContainer.classList.add('status-standby');
-                playAudio(audioStandby, true);
+                
+                // 1. STANDING BYの音を再生
+                playAudio(audioStandby, false);
+
+                // 2. STANDING BYの後にCHARGE音をループ再生
+                // STANDBYの長さに合わせてsetTimeoutを設定
+                // (ここではSTANDBY音が1.5秒だと仮定)
+                setTimeout(() => {
+                    playAudio(audioCharge, true); 
+                }, 1500); 
 
                 currentState = 'STANDBY';
                 
                 enterBtn.onmousedown = enterBtn.ontouchstart = null;
-                
                 window.addEventListener('deviceorientation', handleOrientation);
 
             } else if (currentCode.length > 0) {
@@ -111,12 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 1000);
             }
         }
-        else if (currentState === 'COMPLETE') {
-            exceedCharge();
-        }
+        // 変身後のENTERは無効化 (このギミックではチャージ機能は含まれないため)
     }
 
-    // 回転検出の処理 (変更なし)
+    // 回転検出の処理
     function handleOrientation(event) {
         if (currentState !== 'STANDBY') return;
         
@@ -127,13 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 変身完了処理 (変更なし)
+    // 変身完了処理
     function completeHenshin() {
         if (currentState !== 'STANDBY') return;
         
         window.removeEventListener('deviceorientation', handleOrientation);
 
-        stopAudio(audioStandby);
+        stopAudio(audioCharge); // ★ループしているCHARGE音を停止★
         playAudio(audioComplete);
 
         statusText.textContent = "COMPLETE";
@@ -141,27 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
         driverContainer.classList.add('status-complete');
         currentState = 'COMPLETE';
 
-        enterBtn.onmousedown = exceedCharge;
-        enterBtn.ontouchstart = exceedCharge;
+        // 変身完了後はENTERボタンを無効化
+        enterBtn.onmousedown = enterBtn.ontouchstart = null;
     }
 
 
-    // エクシードチャージ処理 (変更なし)
-    function exceedCharge() {
-        if (currentState !== 'COMPLETE') return;
-
-        playAudio(audioCharge);
-
-        statusText.textContent = "EXCEED CHARGE";
-        driverContainer.style.animation = 'complete-glow 0.3s 3 alternate';
-        
-        setTimeout(() => {
-            statusText.textContent = "COMPLETE";
-            driverContainer.style.animation = 'none';
-        }, 1500);
-    }
-
-    // 初期イベントリスナー設定 (変更なし)
+    // 初期イベントリスナー設定
     enterBtn.onmousedown = enterPress;
     enterBtn.ontouchstart = enterPress;
 
