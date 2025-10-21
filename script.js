@@ -121,9 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // クリアボタン (変更なし)
     clearBtn.addEventListener('click', () => {
-        if (currentState === 'READY' || currentState === 'STANDBY') {
-            resetState();
-        }
+        if (currentState === 'READY' || currentState === 'STANDBY' || currentState === 'COMPLETE') {
+        resetState();
+    }
     });
 
     // ENTERキー処理 (★センサー有効化とSTANDBYロジックを変更★)
