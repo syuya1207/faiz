@@ -32,16 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.removeEventListener('deviceorientation', handleOrientation);
     }
 
-    // --- 音声再生ヘルパー関数 ---
+    // --- 音声再生ヘルパー関数（省略） ---
 
     function playAudio(audioElement, loop = false) {
-        // キー入力音など、短い音は毎回新しいAudioオブジェクトで再生
         if (!loop && audioElement.id === 'audio-key-press') {
             const tempAudio = new Audio(audioElement.src);
             tempAudio.play().catch(e => console.error("Audio playback failed:", e));
             return;
         }
-
         if (loop) {
             stopAudio(audioStandby);
         }
@@ -57,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ギミック処理関数 ---
 
-    // テンキー入力
+    // テンキー入力 (変更なし)
     keypad.addEventListener('click', (e) => {
         if (currentState !== 'READY') return;
 
@@ -73,15 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // クリアボタン
+    // クリアボタン (★ここを変更しました★)
     clearBtn.addEventListener('click', () => {
-        if (currentState !== 'READY') return;
-        currentCode = "";
-        codeInput.textContent = "";
-        statusText.textContent = "READY";
+        if (currentState === 'READY') {
+            // READY状態: コードのクリア
+            currentCode = "";
+            codeInput.textContent = "";
+            statusText.textContent = "READY";
+        } else if (currentState === 'STANDBY') {
+            // STANDBY状態: 変身シークエンスのキャンセル（リセット）
+            resetState();
+        }
+        // COMPLETE状態では何もしない
     });
 
-    // ENTERキー処理 (変身/チャージをトリガー)
+    // ENTERキー処理 (変更なし)
     function enterPress() {
         if (currentState === 'READY') {
             if (currentCode === CODE_PHAIZ) {
@@ -92,11 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 currentState = 'STANDBY';
                 
-                // 変身完了トリガーを、スマホの回転に切り替え
-                enterBtn.onmousedown = enterBtn.ontouchstart = null; // ボタンでの変身を無効化
+                enterBtn.onmousedown = enterBtn.ontouchstart = null;
                 
-                // ★DeviceOrientation Eventの登録★
-                // ここでブラウザがセンサーアクセス許可を求める可能性がある
                 window.addEventListener('deviceorientation', handleOrientation);
 
             } else if (currentCode.length > 0) {
@@ -115,25 +116,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ★回転検出（Device Orientation）の処理★
+    // 回転検出の処理 (変更なし)
     function handleOrientation(event) {
         if (currentState !== 'STANDBY') return;
         
-        // gamma: 左右の傾き (-90から90度)
         const gamma = event.gamma; 
 
-        // 90度回転（ベルトに差し込む動作）を検出する
-        // 80度を閾値とする (90度に近ければOK)
         if (Math.abs(gamma) > 80) { 
             completeHenshin();
         }
     }
 
-    // 変身完了処理
+    // 変身完了処理 (変更なし)
     function completeHenshin() {
         if (currentState !== 'STANDBY') return;
         
-        // ★DeviceOrientation Eventを解除して、誤動作を防ぐ★
         window.removeEventListener('deviceorientation', handleOrientation);
 
         stopAudio(audioStandby);
@@ -144,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         driverContainer.classList.add('status-complete');
         currentState = 'COMPLETE';
 
-        // ENTERボタンの役割を 'エクシードチャージ' に変更
         enterBtn.onmousedown = exceedCharge;
         enterBtn.ontouchstart = exceedCharge;
     }
@@ -165,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500);
     }
 
-    // 初期イベントリスナー設定
+    // 初期イベントリスナー設定 (変更なし)
     enterBtn.onmousedown = enterPress;
     enterBtn.ontouchstart = enterPress;
 
@@ -174,3 +170,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // アプリ初期化
     resetState();
 });
+
