@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ※ただし、iPhoneで横持ちしている場合、gammaが小さくなる。
         //   ここでは、スマホが縦向きに近ければgamma、横向きに近ければbeta/alphaを考慮すべきだが、
         //   単純にスマホをベルトに差し込む「傾き」を検出するためにgammaを使用。
-        if (Math.abs(gamma) > 80) { 
+        if (Math.abs(gamma) > 60) { 
             completeHenshin();
         }
     }
