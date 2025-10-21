@@ -1,0 +1,160 @@
+/* リセットと基本設定 */
+body {
+    background-color: #333;
+    color: #fff;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* ドライバー全体のコンテナ */
+#driver-container {
+    width: 90%;
+    max-width: 400px; /* スマホサイズを意識した最大幅 */
+    text-align: center;
+}
+
+/* ファイズドライバー本体（外枠） */
+#phazer-driver {
+    background-color: #111;
+    border: 5px solid #ff0000; /* ファイズらしい赤いフチ */
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+/* ディスプレイエリア */
+#display-area {
+    background-color: #000;
+    border: 3px solid #ff0000;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+    min-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#status-text {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #000; /* 初期状態は非発光 */
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+/* キーパッド */
+#keypad {
+    padding: 10px;
+}
+
+.code-display {
+    background-color: #000;
+    border: 1px solid #ff0000;
+    margin-bottom: 10px;
+    padding: 5px;
+    height: 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+#code-input {
+    font-size: 1.2em;
+    color: #f0f0f0;
+    margin: 0;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.key {
+    flex: 1;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+    padding: 15px 0; /* タッチしやすいサイズ */
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.1s;
+}
+
+.key:active {
+    background-color: #555;
+}
+
+.enter-key {
+    background-color: #ff0000;
+    color: #fff;
+    flex: 2;
+}
+
+.enter-key:active {
+    background-color: #aa0000;
+}
+
+.clear-key {
+    background-color: #555;
+    flex: 1;
+}
+
+.instruction-text {
+    margin-top: 15px;
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+
+/* === ギミックアニメーション === */
+
+/* 待機状態 (STANDING BY) のスタイル */
+.status-standby #status-text {
+    color: #ff0000;
+    animation: standby-flash 0.8s infinite alternate; /* 点滅アニメーション */
+}
+
+/* 変身完了状態 (COMPLETE) のスタイル */
+.status-complete #status-text {
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000; /* 強い光 */
+    animation: none;
+}
+
+/* キーフレームアニメーション */
+@keyframes standby-flash {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}
+
+@keyframes complete-glow {
+    from { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+    to { box-shadow: 0 0 30px rgba(255, 0, 0, 1); }
+}
+
+/* === スマホ縦画面でのレスポンシブ調整 === */
+@media (max-width: 450px) {
+    #driver-container {
+        width: 100%;
+        max-width: none;
+        padding: 10px;
+    }
+    #phazer-driver {
+        padding: 10px;
+    }
+    .key {
+        padding: 18px 0; /* スマホでより押しやすく */
+        font-size: 1.4em;
+    }
+}
